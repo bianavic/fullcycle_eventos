@@ -2,6 +2,7 @@ package events
 
 import (
 	"errors"
+	"sync"
 )
 
 var (
@@ -18,14 +19,33 @@ func NewEventDispatcher() *EventDispatcher {
 	}
 }
 
+/*
+SYNC FUNCTION
+*/
+//func (ev *EventDispatcher) Dispatch(event EventInterface) error {
+//	// verifica se o evento tem um handler registrado com esse nome de evento
+//	if handlers, ok := ev.handlers[event.GetName()]; ok {
+//		// verifica cada um dos handlers
+//		for _, handler := range handlers {
+//			// executa o metodo Handle passando o evento que foi chamado
+//			handler.Handle(event)
+//		}
+//		return nil
+//	}
+//	return errors.New("no handlers registered for event: " + event.GetName())
+//}
+
 func (ev *EventDispatcher) Dispatch(event EventInterface) error {
-	// verifica se o evento tem um handler registrado com esse nome de evento
+	// verifica tem um handler registrado com esse nome de evento
 	if handlers, ok := ev.handlers[event.GetName()]; ok {
+		wg := &sync.WaitGroup{}
 		// verifica cada um dos handlers
 		for _, handler := range handlers {
 			// executa o metodo Handle passando o evento que foi chamado
-			handler.Handle(event)
+			wg.Add(1) // precisa adicionar numero 1 para que cada vez que o handler terminar a execucao, adiciona wg.Done
+			go handler.Handle(event, wg)
 		}
+		wg.Wait()
 		return nil
 	}
 	return errors.New("no handlers registered for event: " + event.GetName())

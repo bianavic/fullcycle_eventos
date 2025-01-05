@@ -4,6 +4,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"sync"
 	"testing"
 	"time"
 )
@@ -29,7 +30,11 @@ type TestEventHandler struct {
 	ID int
 }
 
-func (h *TestEventHandler) Handle(event EventInterface) {}
+// async
+func (h *TestEventHandler) Handle(event EventInterface, wg *sync.WaitGroup) {}
+
+// sync
+// func (h *TestEventHandler) Handle(event EventInterface) {}
 
 type EventDispatcherTestSuite struct {
 	suite.Suite
@@ -85,6 +90,66 @@ func (suite *EventDispatcherTestSuite) TestEventDispatcher_Register_WithSameHand
 	suite.Equal(1, len(suite.eventDispatcher.handlers[suite.event1.GetName()]))
 }
 
+func (suite *EventDispatcherTestSuite) TestEventDispatcher_Dispatch() {
+	// mockar handler
+	eh := &MockHandler{}
+	// verificar se o metodo Handle foi chamado
+	eh.On("Handle", &suite.event1)
+
+	// mockar evento2
+	eh2 := &MockHandler{}
+	eh2.On("Handle", &suite.event1)
+
+	// registrar o mock handle do evento 1 e 2
+	suite.eventDispatcher.Register(suite.event1.GetName(), eh)
+	suite.eventDispatcher.Register(suite.event1.GetName(), eh2)
+
+	suite.eventDispatcher.Dispatch(&suite.event1)
+	// verificar se o metodo Handle foi executado corretamente
+	eh.AssertExpectations(suite.T())
+	eh2.AssertExpectations(suite.T())
+	// verificar se o metodo Handle foi chamado 1 vez
+	eh.AssertNumberOfCalls(suite.T(), "Handle", 1)
+	eh2.AssertNumberOfCalls(suite.T(), "Handle", 1)
+	// handler 3 nao esta registrado
+	err := suite.eventDispatcher.Dispatch(&suite.event2)
+	suite.EqualError(err, "no handlers registered for event: "+suite.event2.GetName())
+}
+
+func (suite *EventDispatcherTestSuite) TestEventDispatcher_Remove() {
+	// Event1
+	err := suite.eventDispatcher.Register(suite.event1.GetName(), &suite.handler1)
+	suite.Nil(err)
+	suite.Equal(1, len(suite.eventDispatcher.handlers[suite.event1.GetName()]))
+
+	err = suite.eventDispatcher.Register(suite.event1.GetName(), &suite.handler2)
+	suite.Nil(err)
+	suite.Equal(2, len(suite.eventDispatcher.handlers[suite.event1.GetName()]))
+
+	// Event 2
+	err = suite.eventDispatcher.Register(suite.event2.GetName(), &suite.handler3)
+	suite.Nil(err)
+	suite.Equal(1, len(suite.eventDispatcher.handlers[suite.event2.GetName()]))
+
+	// Remove handler1 do evento1
+	err = suite.eventDispatcher.Remove(suite.event1.GetName(), &suite.handler1)
+	suite.Nil(err)
+	suite.Equal(1, len(suite.eventDispatcher.handlers[suite.event1.GetName()]))
+	suite.Equal(&suite.handler2, suite.eventDispatcher.handlers[suite.event1.GetName()][0])
+
+	// Remove handler2 do evento1
+	suite.eventDispatcher.Remove(suite.event1.GetName(), &suite.handler2)
+	suite.Equal(0, len(suite.eventDispatcher.handlers[suite.event1.GetName()]))
+
+	// Remove handler3 do evento2
+	suite.eventDispatcher.Remove(suite.event2.GetName(), &suite.handler3)
+	suite.Equal(0, len(suite.eventDispatcher.handlers[suite.event2.GetName()]))
+
+	// Garanta que remocao de um handler inexistente (todos removidos) retorna nil
+	err = suite.eventDispatcher.Remove(suite.event1.GetName(), &suite.handler1)
+	suite.Nil(err)
+}
+
 func (suite *EventDispatcherTestSuite) TestEventDispatcher_Register_Clear() {
 	// Event1 com 2 handlers registrados
 	// registra evento1 no dispatcher handler1
@@ -128,56 +193,10 @@ type MockHandler struct {
 	mock.Mock
 }
 
-func (m *MockHandler) Handle(event EventInterface) {
+// async
+func (m *MockHandler) Handle(event EventInterface, wg *sync.WaitGroup) {
 	m.Called(event)
-}
-
-func (suite *EventDispatcherTestSuite) TestEventDispatcher_Dispatch() {
-	// mockar handler
-	eh := &MockHandler{}
-	// verificar se o metodo Handle foi chamado
-	eh.On("Handle", &suite.event1)
-
-	// registrar o mock handle
-	suite.eventDispatcher.Register(suite.event1.GetName(), eh)
-	suite.eventDispatcher.Dispatch(&suite.event1)
-	// verificar se o metodo Handle foi executado corretamente
-	eh.AssertExpectations(suite.T())
-	// verificar se o metodo Handle foi chamado 1 vez
-	eh.AssertNumberOfCalls(suite.T(), "Handle", 1)
-	// handler 3 nao esta registrado
-	err := suite.eventDispatcher.Dispatch(&suite.event2)
-	suite.EqualError(err, "no handlers registered for event: "+suite.event2.GetName())
-}
-
-func (suite *EventDispatcherTestSuite) TestEventDispatcher_Remove() {
-	// Event1
-	err := suite.eventDispatcher.Register(suite.event1.GetName(), &suite.handler1)
-	suite.Nil(err)
-	suite.Equal(1, len(suite.eventDispatcher.handlers[suite.event1.GetName()]))
-
-	err = suite.eventDispatcher.Register(suite.event1.GetName(), &suite.handler2)
-	suite.Nil(err)
-	suite.Equal(2, len(suite.eventDispatcher.handlers[suite.event1.GetName()]))
-
-	// Event 2
-	err = suite.eventDispatcher.Register(suite.event2.GetName(), &suite.handler3)
-	suite.Nil(err)
-	suite.Equal(1, len(suite.eventDispatcher.handlers[suite.event2.GetName()]))
-
-	// Remove handler1 do evento1
-	err = suite.eventDispatcher.Remove(suite.event1.GetName(), &suite.handler1)
-	suite.Nil(err)
-	suite.Equal(1, len(suite.eventDispatcher.handlers[suite.event1.GetName()]))
-	suite.Equal(&suite.handler2, suite.eventDispatcher.handlers[suite.event1.GetName()][0])
-
-	// Remove handler2 do evento1
-	suite.eventDispatcher.Remove(suite.event1.GetName(), &suite.handler2)
-	suite.Equal(0, len(suite.eventDispatcher.handlers[suite.event1.GetName()]))
-
-	// Remove handler3 do evento2
-	suite.eventDispatcher.Remove(suite.event2.GetName(), &suite.handler3)
-	suite.Equal(0, len(suite.eventDispatcher.handlers[suite.event2.GetName()]))
+	wg.Done() // espera mas roda de forma sync
 }
 
 // ao rodar TestSuite, todos os metodos sao executados

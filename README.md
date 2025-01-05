@@ -21,3 +21,10 @@ Elementos taticos do contexto de eventos:
     - `Clear` limpa o dispacher matando todos os eventos registrados
 
 obs: EventDispatcher - é um `map` porque um evento pode ter diversos handlers registrados
+
+---
+Tornar o método `Dispatch` async: disparar eventos ao mesmo tempo, rodando em paralelo, em threads separadas
+- adicionar Go Routine (rodando numa thread separada)
+- criar WaitGroup
+- criar 1 thread para cada handle
+- enqto executa todas as threads, adiciona Wait para esperar a execucao de todos os handlers
