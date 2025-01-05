@@ -84,6 +84,29 @@ func (suite *EventDispatcherTestSuite) TestEventDispatcher_Register_WithSameHand
 	suite.Equal(1, len(suite.eventDispatcher.handlers[suite.event1.GetName()]))
 }
 
+func (suite *EventDispatcherTestSuite) TestEventDispatcher_Register_Clear() {
+	// Event1 com 2 handlers registrados
+	// registra evento1 no dispatcher handler1
+	err := suite.eventDispatcher.Register(suite.event1.GetName(), &suite.handler1)
+	suite.Nil(err)
+	suite.Equal(1, len(suite.eventDispatcher.handlers[suite.event1.GetName()]))
+
+	// registra evento1 no dispatcher handler2
+	err = suite.eventDispatcher.Register(suite.event1.GetName(), &suite.handler2)
+	suite.Nil(err)
+	suite.Equal(2, len(suite.eventDispatcher.handlers[suite.event1.GetName()]))
+
+	// Event2 com 1 handler registrado
+	// registra evento2 no dispatcher handler3
+	err = suite.eventDispatcher.Register(suite.event2.GetName(), &suite.handler3)
+	suite.Nil(err)
+	suite.Equal(1, len(suite.eventDispatcher.handlers[suite.event2.GetName()]))
+
+	err = suite.eventDispatcher.Clear()
+	suite.Nil(err)
+	suite.Equal(0, len(suite.eventDispatcher.handlers))
+}
+
 // ao rodar TestSuite, todos os metodos sao executados
 func TestSuite(t *testing.T) {
 	suite.Run(t, new(EventDispatcherTestSuite))
