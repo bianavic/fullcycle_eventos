@@ -1,8 +1,9 @@
-### fullcycle_eventos
-## Biblioteca gerenciadora de eventos
+## fullcycle_eventos
 
+---
 
-Elementos taticos do contexto de eventos:
+### Biblioteca gerenciadora de eventos
+Abaixo estão os elementos taticos do contexto de eventos:
 
 1- Evento: a interface `EventInterface` possui a visao geral do que o sistema faz
   - `GetName` pega dados com o nome do evento
@@ -23,8 +24,12 @@ Elementos taticos do contexto de eventos:
 obs: EventDispatcher - é um `map` porque um evento pode ter diversos handlers registrados
 
 ---
+### Go Routine
 Tornar o método `Dispatch` async: disparar eventos ao mesmo tempo, rodando em paralelo, em threads separadas
 - adicionar Go Routine (rodando numa thread separada)
 - criar WaitGroup
 - criar 1 thread para cada handle
 - enqto executa todas as threads, adiciona Wait para esperar a execucao de todos os handlers
+
+---
+### RabbitMQ com Docker
