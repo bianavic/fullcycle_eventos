@@ -7,3 +7,7 @@ type EventInterface interface {
 	GetDateTime() time.Time
 	GetPayload() interface{}
 }
+
+type EventHandler interface {
+	Handle(event EventInterface)
+}
