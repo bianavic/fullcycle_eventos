@@ -48,6 +48,22 @@ func (ed *EventDispatcher) Register(eventName string, handler EventHandlerInterf
 	return nil
 }
 
+func (ed *EventDispatcher) Remove(eventName string, handler EventHandlerInterface) error {
+	// verificar se tem registro do evento
+	if _, ok := ed.handlers[eventName]; ok {
+		// percorrer todos os handlers que estao nos registros desse evento
+		for i, h := range ed.handlers[eventName] {
+			// qdo encontrar o handler
+			if h == handler {
+				// fara o append ZERO - o primeiro item que encontra - com o segundo e itens restantes
+				ed.handlers[eventName] = append(ed.handlers[eventName][:i], ed.handlers[eventName][i+1:]...)
+				return nil
+			}
+		}
+	}
+	return nil
+}
+
 func (ed *EventDispatcher) Has(eventName string, handler EventHandlerInterface) bool {
 	// verifica se o nome do evento esta registrado
 	if _, ok := ed.handlers[eventName]; ok {
