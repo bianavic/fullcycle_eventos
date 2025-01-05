@@ -18,3 +18,6 @@ Elementos taticos do contexto de eventos:
     - remove evento
     - verifica se o evento X possui aquela operacao Y
     - limpa o dispacher matando todos os eventos registrados
+
+EventDispatcher: 
+1 evento pode ter diversos handlers registrados
