@@ -4,7 +4,9 @@ import (
 	"errors"
 )
 
-var ErrHandlerAlreadyRegistered = errors.New("handler already registered")
+var (
+	ErrHandlerAlreadyRegistered = errors.New("handler already registered")
+)
 
 type EventDispatcher struct {
 	handlers map[string][]EventHandlerInterface
@@ -14,6 +16,19 @@ func NewEventDispatcher() *EventDispatcher {
 	return &EventDispatcher{
 		handlers: make(map[string][]EventHandlerInterface),
 	}
+}
+
+func (ev *EventDispatcher) Dispatch(event EventInterface) error {
+	// verifica se o evento tem um handler registrado com esse nome de evento
+	if handlers, ok := ev.handlers[event.GetName()]; ok {
+		// verifica cada um dos handlers
+		for _, handler := range handlers {
+			// executa o metodo Handle passando o evento que foi chamado
+			handler.Handle(event)
+		}
+		return nil
+	}
+	return errors.New("no handlers registered for event: " + event.GetName())
 }
 
 func (ed *EventDispatcher) Register(eventName string, handler EventHandlerInterface) error {

@@ -2,6 +2,7 @@ package events
 
 import (
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"testing"
 	"time"
@@ -121,6 +122,32 @@ func (suite *EventDispatcherTestSuite) TestEventDispatcher_Register_Has() {
 	assert.True(suite.T(), suite.eventDispatcher.Has(suite.event1.GetName(), &suite.handler2))
 	// handler 3 nao esta registrado
 	assert.False(suite.T(), suite.eventDispatcher.Has(suite.event1.GetName(), &suite.handler3))
+}
+
+type MockHandler struct {
+	mock.Mock
+}
+
+func (m *MockHandler) Handle(event EventInterface) {
+	m.Called(event)
+}
+
+func (suite *EventDispatcherTestSuite) TestEventDispatcher_Dispatch() {
+	// mockar handler
+	eh := &MockHandler{}
+	// verificar se o metodo Handle foi chamado
+	eh.On("Handle", &suite.event1)
+
+	// registrar o mock handle
+	suite.eventDispatcher.Register(suite.event1.GetName(), eh)
+	suite.eventDispatcher.Dispatch(&suite.event1)
+	// verificar se o metodo Handle foi executado corretamente
+	eh.AssertExpectations(suite.T())
+	// verificar se o metodo Handle foi chamado 1 vez
+	eh.AssertNumberOfCalls(suite.T(), "Handle", 1)
+	// handler 3 nao esta registrado
+	err := suite.eventDispatcher.Dispatch(&suite.event2)
+	suite.EqualError(err, "no handlers registered for event: "+suite.event2.GetName())
 }
 
 // ao rodar TestSuite, todos os metodos sao executados
