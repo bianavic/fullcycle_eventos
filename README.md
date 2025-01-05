@@ -33,3 +33,18 @@ Tornar o método `Dispatch` async: disparar eventos ao mesmo tempo, rodando em p
 
 ---
 ### RabbitMQ com Docker
+
+acessa pasta
+```shell
+cd pkg
+```
+
+subir rabbitmq
+```shell
+docker-compose up -d
+```
+
+acessa admin
+```
+curl http://localhost:15692
+```

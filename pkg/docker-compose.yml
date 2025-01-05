@@ -1,0 +1,13 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.9-alpine
+    container_name: rabbitmq
+    hostname: rabbitmq
+    ports:
+      - "5672:5672" # porta de comunicacao com rabbitmq
+      - "15672:15672"
+      - "15692:15692" # porta facilita navegacao no admin rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+      - RABBITMQ_DEFAULT_VHOST=/
