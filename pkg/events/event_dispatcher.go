@@ -1,6 +1,8 @@
 package events
 
-import "errors"
+import (
+	"errors"
+)
 
 var ErrHandlerAlreadyRegistered = errors.New("handler already registered")
 
@@ -29,6 +31,21 @@ func (ed *EventDispatcher) Register(eventName string, handler EventHandlerInterf
 	// caso evento nunca tenha sido registrado, adiciona no map
 	ed.handlers[eventName] = append(ed.handlers[eventName], handler)
 	return nil
+}
+
+func (ed *EventDispatcher) Has(eventName string, handler EventHandlerInterface) bool {
+	// verifica se o nome do evento esta registrado
+	if _, ok := ed.handlers[eventName]; ok {
+		// verifica se o evento registrado pertence ao handler
+		for _, h := range ed.handlers[eventName] {
+			// comparar o handler passado com o que esta registrado
+			if h == handler {
+				return true
+			}
+		}
+	}
+	// o handler passado nao esta registrado
+	return false
 }
 
 func (ed *EventDispatcher) Clear() error {
