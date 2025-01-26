@@ -1,12 +1,12 @@
 package rabbitmq
 
-import "github.com/rabbitmq/amqp091-go"
+import amqp "github.com/rabbitmq/amqp091-go"
 
 // criar conexao e canal
-func OpenChannel() (*amqp091.Channel, error) {
+func OpenChannel() (*amqp.Channel, error) {
 
 	// criar conexao - dial para a conexao
-	conn, err := amqp091.Dial("amqp://guest:guest@localhost:5672/")
+	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {
 		panic(err)
 	}
@@ -27,9 +27,9 @@ CANAL GO
 consumir msg que esta na fila
 os dados irao sair (msgs com nome out)
 */
-func Consume(ch *amqp091.Channel, out chan<- amqp091.Delivery) error {
+func Consume(ch *amqp.Channel, out chan<- amqp.Delivery, queue string) error {
 	msgs, err := ch.Consume(
-		"minhafila",
+		queue,
 		"go-consume",
 		// auto ack true - qdo recebe a msg da uma baixa - diz q ja foi lida e pode remover da fila - qdo PODE PERDER a msg
 		false,
@@ -45,6 +45,24 @@ func Consume(ch *amqp091.Channel, out chan<- amqp091.Delivery) error {
 	// ler msgs que chegam do consumidor e jogar para canal
 	for msg := range msgs {
 		out <- msg
+	}
+	return nil
+}
+
+// enviar, publicar mesg
+func Publish(ch *amqp.Channel, body string, exchName string) error {
+	err := ch.Publish(
+		exchName, // ligar a uma fila
+		"",
+		false,
+		false,
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        []byte(body),
+		},
+	)
+	if err != nil {
+		return err
 	}
 	return nil
 }

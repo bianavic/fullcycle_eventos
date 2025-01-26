@@ -1,8 +1,9 @@
 services:
   rabbitmq:
-    image: rabbitmq:3.9-alpine
+    image: rabbitmq:3.13.1-management-alpine
     container_name: rabbitmq
     hostname: rabbitmq
+    restart: unless-stopped
     ports:
       - "5672:5672" # porta de comunicacao com rabbitmq
       - "15672:15672"

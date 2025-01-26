@@ -46,5 +46,17 @@ docker-compose up -d
 
 acessa admin
 ```
-curl http://localhost:15692
+curl http://localhost:15672/#/
+```
+
+rodar consumer
+```shell
+cd pkg/cmd/consumer
+go run main.go
+```
+
+// enviar hello world para amq.direct roteando para o consumidor
+```shell
+cd pkg/cmd/producer
+go run main.go
 ```
