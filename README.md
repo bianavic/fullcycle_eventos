@@ -39,14 +39,14 @@ acessa pasta
 cd pkg
 ```
 
-subir rabbitmq
+baixar imagem / subir rabbitmq
 ```shell
 docker-compose up -d
 ```
 
-acessa admin
+acessa admin browser
 ```
-curl http://localhost:15672/#/
+http://localhost:15672/
 ```
 
 rodar consumer
@@ -55,8 +55,34 @@ cd pkg/cmd/consumer
 go run main.go
 ```
 
-// enviar hello world para amq.direct roteando para o consumidor
+rabbitmq configurado
+a- consumer:
+![consumer.png](assets%3Aimages/consumer.png)
+
+b- fila:
+![fila.png](assets%3Aimages/fila.png)
+
+c- publicacao mensagem:
+![msg.png](assets%3Aimages/msg.png)
+
+d- msg output:
+![msg_output.png](assets%3Aimages/msg_output.png)
+
+e- configura exhange:
+![exchange_direct.png](assets%3Aimages/exchange_direct.png)
+
+enviando `hello world` para amq.direct roteando para o consumidor
+
+a- roda consumer
+```shell
+cd pkg/cmd/consumer
+go run main.go
+```
+
+b- roda producer
 ```shell
 cd pkg/cmd/producer
 go run main.go
 ```
+c- output consumer
+![msg_output2.png](assets%3Aimages/msg_output2.png)

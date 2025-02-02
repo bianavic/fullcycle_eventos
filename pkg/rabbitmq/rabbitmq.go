@@ -53,7 +53,7 @@ func Consume(ch *amqp.Channel, out chan<- amqp.Delivery, queue string) error {
 func Publish(ch *amqp.Channel, body string, exchName string) error {
 	err := ch.Publish(
 		exchName, // ligar a uma fila
-		"",
+		"",       // nao publicara direto na fila
 		false,
 		false,
 		amqp.Publishing{
